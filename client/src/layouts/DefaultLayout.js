@@ -6,7 +6,6 @@ const DefaultLayout = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #add8e6;
 `;
 
 export default DefaultLayout;
