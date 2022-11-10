@@ -2,6 +2,11 @@ import { useState, useContext } from "react";
 import Button from "../Button";
 import { NightDayContext } from "../../context/NightDayProvider";
 import styled from "styled-components";
+import { useParams } from "react-router-dom";
+
+const StyledConteiner = styled.div`
+  min-height: 511px;
+`;
 
 const StyledForm = styled.form`
   margin-left: 10px;
@@ -17,22 +22,21 @@ const StyledTextarea = styled.textarea`
   width: 1336px;
   border-radius: 6px;
 `;
-const CustomForm = () => {
+const EditForm = () => {
   const [topic, setTopic] = useState("");
   const [question, setQuestion] = useState("");
   const { isNight } = useContext(NightDayContext);
-
+  const { id } = useParams();
   const handleSubmit = (e) => {
+    const comments = { topic: topic, question: question };
     e.preventDefault();
 
-    const comments = { topic: topic, question: question };
-
-    fetch("http://localhost:8080/questions", {
-      method: "POST",
+    fetch("http://localhost:8080/questions/edit/" + id, {
+      method: "PATCH",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("token")}`, //Add this line
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
 
       body: JSON.stringify(comments),
@@ -46,7 +50,7 @@ const CustomForm = () => {
   };
 
   return (
-    <div style={{ background: isNight ? "black" : "#ffffff" }}>
+    <StyledConteiner style={{ background: isNight ? "black" : "#ffffff" }}>
       <StyledForm onSubmit={handleSubmit}>
         <StyledInput
           style={{
@@ -75,9 +79,9 @@ const CustomForm = () => {
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
         />
-        <Button type="contained">Add post</Button>
+        <Button type="contained">Edit post</Button>
       </StyledForm>
-    </div>
+    </StyledConteiner>
   );
 };
-export default CustomForm;
+export default EditForm;

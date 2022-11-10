@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+
 const mysql = require("mysql2/promise");
 const app = express();
 const bcrypt = require("bcryptjs");
@@ -9,11 +10,14 @@ const { PORT, dbconfig, jwtSecret } = require("./config");
 
 app.use(express.json());
 app.use(cors());
-//get comments
-app.get("/", async (req, res) => {
+
+const { isLoggedIn } = require("./mid");
+
+//get questions
+app.get("/questions", async (req, res) => {
   try {
     const con = await mysql.createConnection(dbconfig);
-    const [response] = await con.execute("SELECT * FROM PVZ_table");
+    const [response] = await con.execute("SELECT * FROM PVZ.questions");
     res.send(response);
 
     await con.end();
@@ -21,13 +25,14 @@ app.get("/", async (req, res) => {
     console.log(e);
   }
 });
-//get one comment
-app.get("/:id", async (req, res) => {
+
+//get one question
+app.get("/questions/:id", isLoggedIn, async (req, res) => {
   try {
     const con = await mysql.createConnection(dbconfig);
     const [response] = await con.execute(`
     SELECT *
-    FROM PVZ.PVZ_table
+    FROM PVZ.questions
     WHERE id = ${req.params.id}
     `);
     await con.end();
@@ -38,15 +43,15 @@ app.get("/:id", async (req, res) => {
   }
 });
 
-//post comments
-app.post("/", async (req, res) => {
+//post question
+app.post("/questions", isLoggedIn, async (req, res) => {
   try {
     const con = await mysql.createConnection(dbconfig);
     const data = req.body;
     const [response] = await con.execute(
-      `INSERT INTO PVZ_table ( name, description) values (${con.escape(
-        data.name
-      )}, ${con.escape(data.description)})`
+      `INSERT INTO PVZ.questions (topic, question) values (${con.escape(
+        data.topic
+      )}, ${con.escape(data.question)})`
     );
     res.send(response);
     await con.end();
@@ -54,13 +59,29 @@ app.post("/", async (req, res) => {
     console.error(e);
   }
 });
-//delete
 
-app.delete("/:id", async (req, res) => {
+//put question
+//neveikia
+app.patch("/questions/edit:id", isLoggedIn, async (req, res) => {
+  try {
+    const con = await mysql.createConnection(dbconfig);
+    const data = req.body;
+    const [response] = await con.execute(
+      `UPDATE PVZ.questions SET topic = ${data.topic} AND question =${data.question} WHERE id = ${req.params.id}`
+    );
+    res.send(response);
+    await con.end();
+  } catch (e) {
+    console.error(e);
+  }
+});
+
+//delete one question
+app.delete("/questions/:id", isLoggedIn, async (req, res) => {
   try {
     const con = await mysql.createConnection(dbconfig);
     const response = await con.execute(
-      `DELETE FROM PVZ_table WHERE id=${req.params.id}`
+      `DELETE FROM PVZ.questions WHERE id=${req.params.id}`
     );
     res.send(response[0]);
     await con.end();
@@ -70,15 +91,13 @@ app.delete("/:id", async (req, res) => {
 });
 
 //registration
-
 const userSchema = Joi.object({
   email: Joi.string().email().trim().lowercase().required(),
   password: Joi.string().required(),
 });
-//Reg
+
 app.post("/register", async (req, res) => {
   let userData = req.body;
-  //schemos validacija
   try {
     userData = await userSchema.validateAsync(userData);
   } catch (e) {
@@ -89,7 +108,7 @@ app.post("/register", async (req, res) => {
     const hashedpass = bcrypt.hashSync(userData.password);
     const con = await mysql.createConnection(dbconfig);
     const response = await con.execute(
-      `INSERT INTO PVZ_users (email, password) VALUES (${mysql.escape(
+      `INSERT INTO PVZ.users (email, password) VALUES (${mysql.escape(
         userData.email
       )}, '${hashedpass}')`
     );
@@ -100,34 +119,19 @@ app.post("/register", async (req, res) => {
     return res.status(500).send({ error: "Server error" });
   }
 });
-// app.post("/register", async (req, res) => {
-//   try {
-//     const con = await mysql.createConnection(dbconfig);
-//     const username = req.body.name;
-//     const password = req.body.password;
-//     const [response] = await con.execute(
-//       `INSERT INTO PVZ.PVZ_users ( name, password) values(${con.escape(
-//         username
-//       )}, ${con.escape(password)})`
-//     );
-//     res.send(response);
-//   } catch (e) {
-//     console.error(e);
-//   }
-// });
+
 //logIn
 app.post("/login", async (req, res) => {
   let userData = req.body;
-  //schemos validacija
   try {
     userData = await userSchema.validateAsync(userData);
   } catch (e) {
-    return res.status(400).send({ error: "Incorect dataaaaaa " });
+    console.log({ error: "Incorect data " });
   }
   try {
     const con = await mysql.createConnection(dbconfig);
     const [response] = await con.execute(`
-    SELECT * FROM PVZ_users
+    SELECT * FROM PVZ.users
     WHERE email = ${mysql.escape(userData.email)}`);
     await con.end();
 
@@ -144,7 +148,7 @@ app.post("/login", async (req, res) => {
         { id: response[0].id, email: response[0].email },
         jwtSecret
       );
-
+      console.log({ token });
       return res.send({ token });
     } else {
       return res.status(400).send({ error: "incorrect password" });
@@ -155,28 +159,60 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// app.post("/login", async (req, res) => {
+app.get("/answers", async (req, res) => {
+  try {
+    const con = await mysql.createConnection(dbconfig);
+    const [response] = await con.execute("SELECT * FROM PVZ.answers");
+    res.send(response);
+    await con.end();
+  } catch (e) {
+    console.log(e);
+  }
+});
+
+// get answers
+//neveikia kaip noreciau, nenestina, visi answers pateikiami i visus questions.
+// app.get("/answers", async (req, res) => {
 //   try {
 //     const con = await mysql.createConnection(dbconfig);
-//     const username = req.body.name;
-//     const password = req.body.password;
 //     const [response] = await con.execute(
-//       "SELECT * FROM PVZ.PVZ_users WHERE name = ? AND password = ?",
-//       [username, password],
-//       (err, result) => {
-//         if (response.lenght > 0) {
-//           res.send(response);
-//         } else {
-//           res.send({ message: "Wrong name/password combination!" });
-//         }
-//       }
+//       "SELECT answer FROM PVZ.answers JOIN PVZ.questions ON answers.id = questions.id"
 //     );
-//     console.log(response);
+//     res.send(response);
 //     await con.end();
 //   } catch (e) {
-//     console.error(e);
+//     console.log(e);
 //   }
 // });
+
+//post answer
+app.post("/answers", isLoggedIn, async (req, res) => {
+  try {
+    const con = await mysql.createConnection(dbconfig);
+    const data = req.body;
+    const [response] = await con.execute(
+      `INSERT INTO PVZ.answers (answer) values (${con.escape(data.answer)})`
+    );
+    res.send(response);
+    await con.end();
+  } catch (e) {
+    console.error(e);
+  }
+});
+
+//delete answer
+app.delete("/answers/:id", isLoggedIn, async (req, res) => {
+  try {
+    const con = await mysql.createConnection(dbconfig);
+    const [response] = await con.execute(
+      `DELETE FROM PVZ.answers WHERE id=${req.params.id}`
+    );
+    res.send(response);
+    await con.end();
+  } catch (e) {
+    console.log(e);
+  }
+});
 
 app.all("*", async (req, res) => {
   res.status(404).send({ error: "Page not found" });

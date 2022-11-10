@@ -6,7 +6,7 @@ const CommentProvider = ({ children }) => {
   const [comments, setComments] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:8080/")
+    fetch("http://localhost:8080/questions")
       .then((resp) => resp.json())
       .then((response) => {
         setComments(response);

@@ -27,30 +27,28 @@ const Input = styled.input`
 `;
 
 const LogInForm = ({ children }) => {
-  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { isNight } = useContext(NightDayContext);
-
-  //   const login = (e) => {
-  //     e.preventDefault();
-  //     Axios.post("http://localhost:8080/login", {
-  //       name: name,
-  //       password: password,
-  //     }).then((response) => console.log(response));
-  //   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const users = { name, password };
+    const users = { email: email, password: password };
     fetch("http://localhost:8080/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(users),
     })
+      .then((resp) => resp.json())
       .then((resp) => {
-        localStorage.setItem("token", resp.token);
-        console.log(users);
+        if (resp.error) {
+          alert("Wrong email or password");
+        } else {
+          localStorage.setItem("token", resp.token);
+          alert("Log in sucssesfuly");
+          console.log(JSON.stringify(resp.token));
+        }
       })
       .catch((err) => {
         console.log(err);
@@ -66,11 +64,11 @@ const LogInForm = ({ children }) => {
     >
       <Label>Email</Label>
       <Input
-        type="text"
+        type="email"
         required
-        value={name}
+        value={email}
         onChange={(e) => {
-          setName(e.target.value);
+          setEmail(e.target.value);
         }}
       />
       <br />
@@ -86,4 +84,5 @@ const LogInForm = ({ children }) => {
     </StyledForm>
   );
 };
+
 export default LogInForm;

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import styled from "styled-components";
-import Button from "../Button/index";
 import { useContext } from "react";
 import { NightDayContext } from "../../context/NightDayProvider";
+import Modal from "../Popup/Modal";
 
 const StyledForm = styled.form`
   text-align: center;
@@ -26,18 +26,10 @@ const Input = styled.input`
   width: 120px;
 `;
 
-const SingUpForm = ({ children }) => {
+const SingUpForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { isNight } = useContext(NightDayContext);
-
-  // const register = (e) => {
-  //   e.preventDefault();
-  //   Axios.post("http://localhost:8080/register", {
-  //     name: nameReg,
-  //     password: passwordReg,
-  //   }).then((response) => console.log(response));
-  // };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -82,7 +74,7 @@ const SingUpForm = ({ children }) => {
         onChange={(e) => setPassword(e.target.value)}
       />
       <br />
-      <Button type="contained">{children}</Button>
+      <Modal />
     </StyledForm>
   );
 };

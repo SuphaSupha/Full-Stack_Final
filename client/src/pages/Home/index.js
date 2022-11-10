@@ -1,10 +1,8 @@
 import Navbar from "../../components/Navbar/Navbar";
 import DefaultLayout from "../../layouts/DefaultLayout";
 import CenterLayout from "../../layouts/CenterLayout";
-// import Heading from "../../components/Heading/index";
 import Button from "../../components/Button/index";
 import Card from "../../components/Card/index";
-// import { useState, useEffect } from "react";
 import CustomForm from "../../components/CustomForm/index";
 import { useContext } from "react";
 import { CommentContext } from "../../context/CommentProvider";
@@ -16,8 +14,13 @@ const Home = () => {
   const { isNight } = useContext(NightDayContext);
 
   const deleteFunction = (id) => {
-    fetch("http://localhost:8080/" + id, {
+    fetch("http://localhost:8080/questions/" + id, {
       method: "DELETE",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
     });
   };
 
@@ -32,12 +35,15 @@ const Home = () => {
           {comments.map((comment) => (
             <div key={comment.id}>
               <Card
-                title={comment.name}
-                subtitle={comment.description}
-                num={comment.num}
+                key={comment.id}
+                title={comment.topic}
+                subtitle={comment.question}
               >
                 <Link to={`/comment/${comment.id}`}>
-                  <Button type="contained">View log</Button>
+                  <Button type="white">View log</Button>
+                </Link>
+                <Link to={`/edit/${comment.id}`}>
+                  <Button type="yellow">Edit</Button>
                 </Link>
                 <Button
                   type="contained"

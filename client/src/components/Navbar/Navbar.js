@@ -3,7 +3,6 @@ import styled from "styled-components";
 import { useContext } from "react";
 import { NightDayContext } from "../../context/NightDayProvider";
 import { FaSun, FaMoon } from "react-icons/fa";
-// import { NightModeContext } from "../../contexts/NightModeProv";
 
 const Container = styled.div`
   height: 120px;
@@ -52,11 +51,14 @@ const Mode = styled.div`
   right: 100px;
   top: 20px;
   color: grey;
+  &:hover {
+    cursor: pointer;
+    color: black;
+  }
 `;
 
 const Navbar = () => {
   const { isNight, toggleMode } = useContext(NightDayContext);
-  // const { isNightMode } = useContext(NightModeContext);
   return (
     <div>
       <Container
@@ -69,16 +71,14 @@ const Navbar = () => {
         <Mode onClick={toggleMode}>{isNight ? <FaSun /> : <FaMoon />} </Mode>
         <div>
           <Link to="/" style={{ textDecoration: "none" }}>
-            <Logo>Forum</Logo>
+            <Logo>DadJokes</Logo>
           </Link>
         </div>
         <RightContainer>
           <nav>
-            {/* <LogIn>Log in</LogIn> */}
             <StyledLink to="/singup">Sing up</StyledLink>
             <StyledLink to="/login">Log in</StyledLink>
           </nav>
-          {/* <div onClick={toggle}>{isNightMode ? "Night" : "day"}</div> */}
         </RightContainer>
       </Container>
     </div>
